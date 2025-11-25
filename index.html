@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カラココナビ（試験版） - ようこそ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css?v=20250109">
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-green-50 to-yellow-50 font-inter min-h-screen">
+    
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-lg border-b-4 border-blue-400">
+        <div class="max-w-4xl mx-auto px-4 py-8">
+            <div class="text-center">
+                <div class="flex items-center justify-center mb-4">
+                    <i class="fas fa-heart-pulse text-red-500 text-5xl mr-4 animate-pulse"></i>
+                    <h1 class="text-4xl font-bold text-gray-900">カラココナビ（試験版）</h1>
+                    <i class="fas fa-smile text-yellow-500 text-5xl ml-4 animate-bounce"></i>
+                </div>
+                <p class="text-xl text-gray-600 mt-4">学校での健康管理を簡単に、安全に</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-6xl mx-auto px-4 py-12">
+        
+        <!-- システム選択 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            
+            <!-- 教員用システム -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 border-4 border-blue-200 hover:border-blue-400 transition-all transform hover:scale-105">
+                <div class="text-center">
+                    <div class="bg-blue-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-user-tie text-blue-600 text-4xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">教員用システム</h2>
+                    <p class="text-gray-600 mb-8">
+                        児童の健康状態を総合的に管理<br>
+                        統計分析、記録管理、データ可視化
+                    </p>
+                    
+                    <div class="space-y-3 mb-8 text-left">
+                        <div class="flex items-center">
+                            <i class="fas fa-chart-pie text-blue-500 mr-3"></i>
+                            <span class="text-sm">健康状況ダッシュボード</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-thermometer-half text-red-500 mr-3"></i>
+                            <span class="text-sm">体調・症状記録</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-users text-green-500 mr-3"></i>
+                            <span class="text-sm">児童情報管理</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-clipboard-list text-purple-500 mr-3"></i>
+                            <span class="text-sm">記録検索・分析</span>
+                        </div>
+                    </div>
+                    
+                    <a href="teacher-login.html" class="w-full inline-block bg-blue-600 text-white py-3 px-6 rounded-2xl font-bold hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all">
+                        <i class="fas fa-sign-in-alt mr-2"></i>教員ログイン
+                    </a>
+                    
+                    <div class="mt-4 text-xs text-gray-500">
+                        <i class="fas fa-lock mr-1"></i>認証が必要です
+                    </div>
+                </div>
+            </div>
+
+            <!-- 児童用システム -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 border-4 border-green-200 hover:border-green-400 transition-all transform hover:scale-105">
+                <div class="text-center">
+                    <div class="bg-green-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-child text-green-600 text-4xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">児童用システム</h2>
+                    <p class="text-gray-600 mb-8">
+                        自分で健康チェック<br>
+                        楽しく、簡単に入力できます
+                    </p>
+                    
+                    <div class="space-y-3 mb-8 text-left">
+                        <div class="flex items-center">
+                            <i class="fas fa-smile text-yellow-500 mr-3"></i>
+                            <span class="text-sm">気分チェック（絵文字で選択）</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-star text-orange-500 mr-3"></i>
+                            <span class="text-sm">疲れ具合（★で評価）</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-heartbeat text-red-500 mr-3"></i>
+                            <span class="text-sm">体の調子チェック</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-gamepad text-purple-500 mr-3"></i>
+                            <span class="text-sm">ゲーム感覚で楽しく入力</span>
+                        </div>
+                    </div>
+                    
+                    <a href="student.html" class="w-full inline-block bg-green-600 text-white py-3 px-6 rounded-2xl font-bold hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all">
+                        <i class="fas fa-play mr-2"></i>けんこうチェック
+                    </a>
+                    
+                    <div class="mt-4 text-xs text-gray-500">
+                        <i class="fas fa-unlock mr-1"></i>すぐに使えます
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-white border-t border-gray-200 py-8 mt-12">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-heart text-red-500 mr-2"></i>
+                <span class="text-gray-600">子どもたちの健康を科学する</span>
+                <i class="fas fa-heart text-red-500 ml-2"></i>
+            </div>
+            <p class="text-sm text-gray-500">© 2025 カラココナビ（試験版） - 教育現場のDXを推進</p>
+        </div>
+    </footer>
+
+</body>
+</html>

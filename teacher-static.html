@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ココカラナビ帯小版 - 教員用システム</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css?v=20250109static">
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <i class="fas fa-heart-pulse text-red-500 text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold text-gray-900">ココカラナビ帯小版</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- 静的データ管理ボタン -->
+                    <div class="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                        <i class="fas fa-database text-blue-600 text-sm"></i>
+                        <span class="text-xs text-blue-800">静的データモード</span>
+                    </div>
+                    <button id="exportDataBtn" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium" title="データをバックアップ">
+                        <i class="fas fa-download mr-1"></i>エクスポート
+                    </button>
+                    <button id="importDataBtn" class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium" title="バックアップデータを復元">
+                        <i class="fas fa-upload mr-1"></i>インポート
+                    </button>
+                    <a href="student.html" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium">
+                        <i class="fas fa-child mr-1"></i>児童用画面
+                    </a>
+                    <span id="currentDate" class="text-sm text-gray-600"></span>
+                    <span class="text-sm text-gray-600">教員専用</span>
+                    <button id="logoutBtn" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
+                        <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- システム説明バナー -->
+    <div class="bg-blue-50 border border-blue-200 mx-4 mt-4 px-4 py-3 rounded-lg">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-500 mr-3 mt-0.5"></i>
+            <div class="text-sm">
+                <p class="text-blue-800 font-medium mb-1">📱 ウェブサイト運用モード</p>
+                <p class="text-blue-700">データはブラウザのローカルストレージに保存されます。定期的にエクスポートしてバックアップを取ることをお勧めします。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインナビゲーション -->
+    <nav class="bg-white border-b border-gray-200 mt-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button id="navDashboard" class="nav-button active px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-chart-pie mr-2"></i>ダッシュボード
+                </button>
+                <button id="navHealthCheck" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-thermometer-half mr-2"></i>健康チェック
+                </button>
+                <button id="navStudents" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-users mr-2"></i>児童管理
+                </button>
+                <button id="navRecords" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-clipboard-list mr-2"></i>記録一覧
+                </button>
+                <button id="navConsultations" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-comments mr-2"></i>相談一覧
+                </button>
+                <button id="navTeachers" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-chalkboard-teacher mr-2"></i>教員管理
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツエリア（teacher.htmlと同じ内容をここに含める） -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 既存のteacher.htmlの全セクションをここにコピー -->
+        <!-- この部分は元のteacher.htmlから対応するセクションを移植 -->
+        
+        <!-- 簡単な動作確認用ダッシュボード -->
+        <section id="dashboard" class="content-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">健康状況ダッシュボード</h2>
+                <p class="text-gray-600">ウェブサイト運用モード - ローカルデータで動作中</p>
+            </div>
+
+            <!-- 動作状況表示 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600">総児童数</p>
+                            <p id="totalStudents" class="text-3xl font-bold text-gray-900">-</p>
+                        </div>
+                        <div class="ml-4">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-users text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600">登録教員数</p>
+                            <p id="totalTeachers" class="text-3xl font-bold text-green-600">-</p>
+                        </div>
+                        <div class="ml-4">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-chalkboard-teacher text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600">健康記録数</p>
+                            <p id="totalRecords" class="text-3xl font-bold text-orange-600">-</p>
+                        </div>
+                        <div class="ml-4">
+                            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clipboard-list text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600">システム状態</p>
+                            <p class="text-lg font-bold text-green-600">正常動作中</p>
+                        </div>
+                        <div class="ml-4">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- システム機能テスト -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">システム機能テスト</h3>
+                <div class="space-y-4">
+                    <button id="testAddTeacher" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mr-4">
+                        <i class="fas fa-plus mr-2"></i>テスト教員追加
+                    </button>
+                    <button id="testAddStudent" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 mr-4">
+                        <i class="fas fa-plus mr-2"></i>テスト児童追加
+                    </button>
+                    <button id="clearAllData" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        <i class="fas fa-trash mr-2"></i>全データクリア
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- その他のセクションは隠れた状態 -->
+        <section id="healthCheck" class="content-section hidden">
+            <div class="text-center py-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">健康チェック機能</h2>
+                <p class="text-gray-600">この機能は開発中です</p>
+            </div>
+        </section>
+
+        <section id="students" class="content-section hidden">
+            <div class="text-center py-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">児童管理機能</h2>
+                <p class="text-gray-600">この機能は開発中です</p>
+            </div>
+        </section>
+
+        <section id="records" class="content-section hidden">
+            <div class="text-center py-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">記録一覧機能</h2>
+                <p class="text-gray-600">この機能は開発中です</p>
+            </div>
+        </section>
+
+        <section id="consultations" class="content-section hidden">
+            <div class="text-center py-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">相談一覧機能</h2>
+                <p class="text-gray-600">この機能は開発中です</p>
+            </div>
+        </section>
+
+        <section id="teachers" class="content-section hidden">
+            <div class="text-center py-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">教員管理機能</h2>
+                <p class="text-gray-600">この機能は開発中です</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- ファイル入力（隠し要素） -->
+    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+
+    <!-- 依存ファイル読み込み -->
+    <script src="js/static-data-manager.js"></script>
+    <script src="js/api-adapter.js"></script>
+    <script src="js/teacher-login.js?v=20250109static"></script>
+    <script>
+        // 静的データ運用用の簡易システム
+        class StaticTeacherSystem {
+            constructor() {
+                this.dataManager = window.staticDataManager;
+                this.currentView = 'dashboard';
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.updateCurrentDate();
+                this.updateDashboard();
+                this.showView('dashboard');
+                console.log('静的データシステム初期化完了');
+            }
+
+            setupEventListeners() {
+                // ナビゲーション
+                document.getElementById('navDashboard').addEventListener('click', () => this.showView('dashboard'));
+                document.getElementById('navHealthCheck').addEventListener('click', () => this.showView('healthCheck'));
+                document.getElementById('navStudents').addEventListener('click', () => this.showView('students'));
+                document.getElementById('navRecords').addEventListener('click', () => this.showView('records'));
+                document.getElementById('navConsultations').addEventListener('click', () => this.showView('consultations'));
+                document.getElementById('navTeachers').addEventListener('click', () => this.showView('teachers'));
+
+                // データ管理
+                document.getElementById('exportDataBtn').addEventListener('click', () => this.exportData());
+                document.getElementById('importDataBtn').addEventListener('click', () => this.importData());
+                document.getElementById('importFileInput').addEventListener('change', (e) => this.handleFileImport(e));
+
+                // テスト機能
+                document.getElementById('testAddTeacher').addEventListener('click', () => this.testAddTeacher());
+                document.getElementById('testAddStudent').addEventListener('click', () => this.testAddStudent());
+                document.getElementById('clearAllData').addEventListener('click', () => this.clearAllData());
+
+                // ログアウト
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    if (confirm('ログアウトしますか？')) {
+                        window.location.href = 'index.html';
+                    }
+                });
+            }
+
+            showView(viewName) {
+                // 全セクション非表示
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.add('hidden');
+                });
+
+                // ナビボタンリセット
+                document.querySelectorAll('.nav-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // 対象セクション表示
+                document.getElementById(viewName).classList.remove('hidden');
+                document.getElementById('nav' + viewName.charAt(0).toUpperCase() + viewName.slice(1)).classList.add('active');
+
+                this.currentView = viewName;
+            }
+
+            updateCurrentDate() {
+                const now = new Date();
+                const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+                document.getElementById('currentDate').textContent = now.toLocaleDateString('ja-JP', options);
+            }
+
+            updateDashboard() {
+                const teachers = this.dataManager.getData('teachers') || [];
+                const students = this.dataManager.getData('students') || [];
+                const records = this.dataManager.getData('health_records') || [];
+
+                document.getElementById('totalTeachers').textContent = teachers.length;
+                document.getElementById('totalStudents').textContent = students.length;
+                document.getElementById('totalRecords').textContent = records.length;
+            }
+
+            exportData() {
+                this.dataManager.exportData();
+                alert('データをエクスポートしました。ダウンロードフォルダを確認してください。');
+            }
+
+            importData() {
+                document.getElementById('importFileInput').click();
+            }
+
+            handleFileImport(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (this.dataManager.importData(data)) {
+                            alert('データをインポートしました。');
+                            this.updateDashboard();
+                        } else {
+                            alert('データのインポートに失敗しました。');
+                        }
+                    } catch (error) {
+                        alert('ファイル形式が正しくありません。');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            testAddTeacher() {
+                const testTeacher = {
+                    name: `テスト先生${Date.now()}`,
+                    subject: 'テスト教科',
+                    active: true
+                };
+
+                const result = this.dataManager.addRecord('teachers', testTeacher);
+                if (result) {
+                    alert(`教員「${result.name}」を追加しました。`);
+                    this.updateDashboard();
+                } else {
+                    alert('教員の追加に失敗しました。');
+                }
+            }
+
+            testAddStudent() {
+                const testStudent = {
+                    name: `テスト児童${Date.now()}`,
+                    grade: 1,
+                    class: 'A組',
+                    active: true
+                };
+
+                const result = this.dataManager.addRecord('students', testStudent);
+                if (result) {
+                    alert(`児童「${result.name}」を追加しました。`);
+                    this.updateDashboard();
+                } else {
+                    alert('児童の追加に失敗しました。');
+                }
+            }
+
+            clearAllData() {
+                if (confirm('全てのデータを削除しますか？この操作は取り消せません。')) {
+                    this.dataManager.clearAllData();
+                    alert('全データをクリアしました。');
+                    this.updateDashboard();
+                }
+            }
+        }
+
+        // システム起動
+        document.addEventListener('DOMContentLoaded', () => {
+            window.staticTeacherSystem = new StaticTeacherSystem();
+        });
+    </script>
+</body>
+</html>

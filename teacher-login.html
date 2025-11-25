@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カラココナビ（試験版） - 教員ログイン</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css?v=20250109">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 font-inter min-h-screen flex items-center justify-center">
+    
+    <div class="max-w-md w-full mx-4">
+        
+        <!-- ロゴとタイトル -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-heart-pulse text-red-500 text-4xl mr-3"></i>
+                <i class="fas fa-user-tie text-blue-600 text-3xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">教員ログイン</h1>
+            <p class="text-gray-600">児童健康管理システム</p>
+        </div>
+
+        <!-- ログインフォーム -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <form id="teacherLoginForm">
+                <div class="space-y-6">
+                    
+                    <!-- 教員ID -->
+                    <div>
+                        <label for="teacherId" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-id-card mr-2 text-blue-500"></i>教員ID
+                        </label>
+                        <input 
+                            type="text" 
+                            id="teacherId" 
+                            name="teacherId"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="教員IDを入力してください"
+                            autocomplete="username"
+                        >
+                    </div>
+
+                    <!-- パスワード -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-lock mr-2 text-blue-500"></i>パスワード
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password"
+                                required
+                                class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="パスワードを入力してください"
+                                autocomplete="current-password"
+                            >
+                            <button 
+                                type="button" 
+                                id="togglePassword" 
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            >
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ログインボタン -->
+                    <button 
+                        type="submit" 
+                        id="loginBtn"
+                        class="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                    >
+                        <i class="fas fa-sign-in-alt mr-2"></i>ログイン
+                    </button>
+
+                </div>
+            </form>
+
+            <!-- エラーメッセージ -->
+            <div id="errorMessage" class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span id="errorText"></span>
+            </div>
+
+            <!-- 成功メッセージ -->
+            <div id="successMessage" class="hidden mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span id="successText"></span>
+            </div>
+        </div>
+
+        <!-- セキュリティに関する注意事項 -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <h3 class="font-medium text-blue-800 mb-2">
+                <i class="fas fa-shield-alt mr-2"></i>教員専用システム
+            </h3>
+            <div class="text-sm text-blue-700">
+                <p>このシステムは教員専用です。正しい認証情報をお持ちの方のみご利用ください。</p>
+                <p class="text-xs mt-2">※ 認証情報は管理者にお問い合わせください</p>
+            </div>
+        </div>
+
+        <!-- 児童用画面へのリンク -->
+        <div class="mt-6 text-center">
+            <a 
+                href="student.html" 
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+                <i class="fas fa-child mr-2 text-green-500"></i>
+                児童用画面はこちら
+            </a>
+        </div>
+
+    </div>
+
+    <!-- フッター -->
+    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center text-gray-500 text-sm">
+        <p>© 2025 カラココナビ（試験版）</p>
+    </div>
+
+    <script src="js/teacher-login.js?v=20250109"></script>
+</body>
+</html>

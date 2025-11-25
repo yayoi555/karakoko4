@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase接続診断 - カラココナビ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/firebase-adapter.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-stethoscope text-red-600 mr-3"></i>
+                Firebase接続診断ツール
+            </h1>
+
+            <!-- 現在のモード -->
+            <div id="modeStatus" class="mb-6"></div>
+
+            <!-- 診断結果 -->
+            <div id="diagnosticResults" class="space-y-4"></div>
+
+            <!-- アクションボタン -->
+            <div class="mt-8 space-y-4">
+                <button onclick="runDiagnostics()" 
+                        class="w-full bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition text-lg font-semibold">
+                    <i class="fas fa-play-circle mr-2"></i>
+                    診断を開始
+                </button>
+
+                <button onclick="switchToLocalStorage()" 
+                        class="w-full bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition text-lg font-semibold">
+                    <i class="fas fa-bolt mr-2"></i>
+                    localStorageモードに切り替え（推奨）
+                </button>
+
+                <a href="teacher.html" 
+                   class="block w-full text-center bg-gray-500 text-white px-6 py-4 rounded-lg hover:bg-gray-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    教員画面に戻る
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 現在のモード表示
+        function displayCurrentMode() {
+            const useFirebase = localStorage.getItem('use_firebase') === 'true';
+            const modeDiv = document.getElementById('modeStatus');
+            
+            if (useFirebase) {
+                modeDiv.innerHTML = `
+                    <div class="bg-orange-50 border-l-4 border-orange-500 p-4">
+                        <p class="font-semibold text-orange-800 mb-2">
+                            <i class="fas fa-fire mr-2"></i>現在の動作モード
+                        </p>
+                        <p class="text-orange-700 text-lg">Firebaseモード（クラウドDB）</p>
+                        <p class="text-sm text-orange-600 mt-2">送信速度が遅い場合があります</p>
+                    </div>
+                `;
+            } else {
+                modeDiv.innerHTML = `
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <p class="font-semibold text-green-800 mb-2">
+                            <i class="fas fa-database mr-2"></i>現在の動作モード
+                        </p>
+                        <p class="text-green-700 text-lg">localStorageモード（ブラウザ内保存）</p>
+                        <p class="text-sm text-green-600 mt-2">✅ 最速モード（0.5秒以内で送信完了）</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 診断実行
+        async function runDiagnostics() {
+            const resultsDiv = document.getElementById('diagnosticResults');
+            resultsDiv.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i><p class="mt-4 text-gray-600">診断中...</p></div>';
+
+            const results = [];
+            const useFirebase = localStorage.getItem('use_firebase') === 'true';
+
+            // テスト1: 動作モード確認
+            results.push({
+                title: 'テスト1: 動作モード確認',
+                status: useFirebase ? 'warning' : 'success',
+                message: useFirebase ? 
+                    'Firebaseモード（送信に時間がかかる可能性あり）' : 
+                    'localStorageモード（最速）',
+                icon: useFirebase ? 'fa-fire' : 'fa-database'
+            });
+
+            if (useFirebase) {
+                // テスト2: Firebase設定確認
+                const firebaseConfig = localStorage.getItem('firebase_config');
+                if (firebaseConfig) {
+                    results.push({
+                        title: 'テスト2: Firebase設定',
+                        status: 'success',
+                        message: '設定ファイルが存在します',
+                        icon: 'fa-check-circle'
+                    });
+
+                    try {
+                        const config = JSON.parse(firebaseConfig);
+                        
+                        // テスト3: Firebase初期化
+                        const startInit = Date.now();
+                        await window.firebaseAdapter.initialize(config);
+                        const initTime = Date.now() - startInit;
+                        
+                        results.push({
+                            title: 'テスト3: Firebase初期化',
+                            status: initTime < 2000 ? 'success' : 'warning',
+                            message: `初期化完了（${initTime}ms）`,
+                            icon: initTime < 2000 ? 'fa-check-circle' : 'fa-exclamation-triangle'
+                        });
+
+                        // テスト4: 接続テスト
+                        const startTest = Date.now();
+                        const testResult = await window.firebaseAdapter.testConnection();
+                        const testTime = Date.now() - startTest;
+
+                        results.push({
+                            title: 'テスト4: Firebase接続テスト',
+                            status: testResult.success ? 
+                                (testTime < 3000 ? 'success' : 'warning') : 'error',
+                            message: `${testResult.message}（${testTime}ms）`,
+                            icon: testResult.success ? 'fa-wifi' : 'fa-times-circle'
+                        });
+
+                        // テスト5: 書き込み速度テスト
+                        const startWrite = Date.now();
+                        const testData = {
+                            id: 'test_' + Date.now(),
+                            name: '速度テスト',
+                            grade: 1,
+                            class: 'A組',
+                            active: true
+                        };
+
+                        try {
+                            const writeResponse = await fetch('tables/students', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify(testData)
+                            });
+                            const writeTime = Date.now() - startWrite;
+
+                            if (writeResponse.ok) {
+                                // テストデータを削除
+                                const result = await writeResponse.json();
+                                if (result.id) {
+                                    await fetch(`tables/students/${result.id}`, {
+                                        method: 'DELETE'
+                                    });
+                                }
+
+                                let status = 'success';
+                                let recommendation = '';
+                                
+                                if (writeTime > 10000) {
+                                    status = 'error';
+                                    recommendation = ' ⚠️ 非常に遅い！localStorageモードを強く推奨';
+                                } else if (writeTime > 5000) {
+                                    status = 'warning';
+                                    recommendation = ' ⚠️ 遅い。localStorageモード推奨';
+                                } else if (writeTime > 3000) {
+                                    status = 'warning';
+                                    recommendation = ' やや遅い';
+                                } else {
+                                    recommendation = ' ✅ 良好';
+                                }
+
+                                results.push({
+                                    title: 'テスト5: データ書き込み速度',
+                                    status: status,
+                                    message: `${writeTime}ms${recommendation}`,
+                                    icon: status === 'success' ? 'fa-tachometer-alt' : 'fa-exclamation-triangle'
+                                });
+                            } else {
+                                throw new Error('書き込みテスト失敗');
+                            }
+                        } catch (error) {
+                            results.push({
+                                title: 'テスト5: データ書き込み速度',
+                                status: 'error',
+                                message: `エラー: ${error.message}`,
+                                icon: 'fa-times-circle'
+                            });
+                        }
+
+                    } catch (error) {
+                        results.push({
+                            title: 'テスト3-5: Firebase接続',
+                            status: 'error',
+                            message: `エラー: ${error.message}`,
+                            icon: 'fa-times-circle'
+                        });
+                    }
+                } else {
+                    results.push({
+                        title: 'テスト2: Firebase設定',
+                        status: 'error',
+                        message: '設定ファイルが見つかりません',
+                        icon: 'fa-times-circle'
+                    });
+                }
+            }
+
+            // 結果表示
+            displayResults(results);
+        }
+
+        // 結果を表示
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('diagnosticResults');
+            let html = '<div class="space-y-4">';
+
+            results.forEach(result => {
+                let bgColor, borderColor, textColor;
+                
+                if (result.status === 'success') {
+                    bgColor = 'bg-green-50';
+                    borderColor = 'border-green-500';
+                    textColor = 'text-green-800';
+                } else if (result.status === 'warning') {
+                    bgColor = 'bg-yellow-50';
+                    borderColor = 'border-yellow-500';
+                    textColor = 'text-yellow-800';
+                } else {
+                    bgColor = 'bg-red-50';
+                    borderColor = 'border-red-500';
+                    textColor = 'text-red-800';
+                }
+
+                html += `
+                    <div class="${bgColor} border-l-4 ${borderColor} p-4">
+                        <p class="font-semibold ${textColor} mb-2">
+                            <i class="fas ${result.icon} mr-2"></i>${result.title}
+                        </p>
+                        <p class="${textColor}">${result.message}</p>
+                    </div>
+                `;
+            });
+
+            // 総合判定
+            const hasError = results.some(r => r.status === 'error');
+            const hasWarning = results.some(r => r.status === 'warning');
+
+            if (hasError) {
+                html += `
+                    <div class="bg-red-100 border-2 border-red-500 rounded-lg p-6 mt-6">
+                        <p class="font-bold text-red-800 text-xl mb-3">
+                            <i class="fas fa-exclamation-circle mr-2"></i>総合判定: 問題あり
+                        </p>
+                        <p class="text-red-700 mb-4">Firebaseモードでの利用は困難です。</p>
+                        <button onclick="switchToLocalStorage()" 
+                                class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-semibold">
+                            今すぐlocalStorageモードに切り替え
+                        </button>
+                    </div>
+                `;
+            } else if (hasWarning) {
+                html += `
+                    <div class="bg-yellow-100 border-2 border-yellow-500 rounded-lg p-6 mt-6">
+                        <p class="font-bold text-yellow-800 text-xl mb-3">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>総合判定: 注意
+                        </p>
+                        <p class="text-yellow-700 mb-4">Firebaseは動作していますが、速度が遅いです。localStorageモードへの切り替えを推奨します。</p>
+                        <button onclick="switchToLocalStorage()" 
+                                class="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition font-semibold">
+                            localStorageモードに切り替える
+                        </button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="bg-green-100 border-2 border-green-500 rounded-lg p-6 mt-6">
+                        <p class="font-bold text-green-800 text-xl mb-3">
+                            <i class="fas fa-check-circle mr-2"></i>総合判定: 良好
+                        </p>
+                        <p class="text-green-700">Firebaseモードは正常に動作しています。</p>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        // localStorageモードに切り替え
+        function switchToLocalStorage() {
+            if (confirm('localStorageモードに切り替えますか？\n\n送信が超高速（0.5秒以内）になります。\n複数PCでのデータ共有は不可になりますが、1台のPCで運用する場合は最適です。')) {
+                localStorage.removeItem('use_firebase');
+                localStorage.removeItem('firebase_config');
+                alert('✅ localStorageモードに切り替えました！\n\n児童用画面でも同じ設定をしてください。');
+                location.reload();
+            }
+        }
+
+        // ページ読み込み時
+        displayCurrentMode();
+    </script>
+</body>
+</html>

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebaseデータベース設定 - カラココナビ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/firebase-adapter.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- ヘッダー -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-database text-4xl text-blue-600 mr-4"></i>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800">Firebaseデータベース設定</h1>
+                        <p class="text-gray-600 mt-1">150-200台のPC同時アクセスを実現</p>
+                    </div>
+                </div>
+                <a href="teacher.html" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>教員画面に戻る
+                </a>
+            </div>
+        </div>
+
+        <!-- 進捗バー -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex-1 mx-2 text-center step-indicator active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <p class="text-sm mt-2">アカウント作成</p>
+                </div>
+                <div class="flex-1 mx-2 text-center step-indicator" data-step="2">
+                    <div class="step-circle">2</div>
+                    <p class="text-sm mt-2">プロジェクト作成</p>
+                </div>
+                <div class="flex-1 mx-2 text-center step-indicator" data-step="3">
+                    <div class="step-circle">3</div>
+                    <p class="text-sm mt-2">Firestore設定</p>
+                </div>
+                <div class="flex-1 mx-2 text-center step-indicator" data-step="4">
+                    <div class="step-circle">4</div>
+                    <p class="text-sm mt-2">接続情報取得</p>
+                </div>
+                <div class="flex-1 mx-2 text-center step-indicator" data-step="5">
+                    <div class="step-circle">5</div>
+                    <p class="text-sm mt-2">データ移行</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Googleアカウント作成 -->
+        <div class="step-content" id="step1">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-user-plus text-blue-600 mr-3"></i>
+                    Step 1: Googleアカウント作成
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                        <p class="font-semibold text-blue-800">✓ 既にGoogleアカウントをお持ちの場合</p>
+                        <p class="text-blue-700 mt-1">このステップはスキップできます。次のステップに進んでください。</p>
+                    </div>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                        <p class="font-semibold text-yellow-800">⚠️ 新規作成が必要な場合</p>
+                        <ol class="list-decimal ml-6 mt-2 space-y-2 text-gray-700">
+                            <li><a href="https://accounts.google.com/signup" target="_blank" class="text-blue-600 hover:underline">Googleアカウント作成ページ</a> にアクセス</li>
+                            <li>必要事項を入力してアカウントを作成</li>
+                            <li>メール認証を完了</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <p class="font-semibold text-green-800">💡 推奨</p>
+                        <p class="text-green-700 mt-1">学校専用のGoogleアカウント（例: school-health@example.com）を作成することをお勧めします。</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button onclick="nextStep(2)" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
+                        次へ進む <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Firebaseプロジェクト作成 -->
+        <div class="step-content hidden" id="step2">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-rocket text-blue-600 mr-3"></i>
+                    Step 2: Firebaseプロジェクト作成
+                </h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">1</span>
+                            Firebase Consoleにアクセス
+                        </h3>
+                        <p class="ml-11 mb-3">以下のリンクからFirebase Consoleを開きます：</p>
+                        <a href="https://console.firebase.google.com/" target="_blank" 
+                           class="ml-11 inline-block bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition">
+                            <i class="fas fa-external-link-alt mr-2"></i>Firebase Console を開く
+                        </a>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">2</span>
+                            プロジェクトを作成
+                        </h3>
+                        <ol class="ml-11 space-y-2 text-gray-700">
+                            <li><strong>「プロジェクトを追加」</strong>ボタンをクリック</li>
+                            <li><strong>プロジェクト名</strong>を入力（例: karakoko-navi）</li>
+                            <li>Google Analyticsの設定（<span class="text-red-600">オフを推奨</span>）</li>
+                            <li><strong>「プロジェクトを作成」</strong>をクリック</li>
+                            <li>プロジェクト作成完了まで数秒待機</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                        <p class="font-semibold text-yellow-800">⏱️ 所要時間</p>
+                        <p class="text-yellow-700 mt-1">プロジェクト作成には通常10-30秒かかります。</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button onclick="prevStep(1)" class="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>前へ戻る
+                    </button>
+                    <button onclick="nextStep(3)" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
+                        次へ進む <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Firestore Database設定 -->
+        <div class="step-content hidden" id="step3">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-database text-blue-600 mr-3"></i>
+                    Step 3: Firestore Database設定
+                </h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">1</span>
+                            Firestoreを有効化
+                        </h3>
+                        <ol class="ml-11 space-y-2 text-gray-700">
+                            <li>左サイドバーの<strong>「構築」</strong>セクション内の<strong>「Firestore Database」</strong>をクリック</li>
+                            <li><strong>「データベースの作成」</strong>ボタンをクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">2</span>
+                            セキュリティルールの選択
+                        </h3>
+                        <div class="ml-11">
+                            <p class="mb-3"><strong class="text-red-600">重要:</strong> 以下の2つのモードから選択してください：</p>
+                            
+                            <div class="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-lg mb-3">
+                                <p class="font-bold text-yellow-800 mb-2">🔓 テストモードで開始（推奨 - 簡単設定）</p>
+                                <ul class="list-disc ml-6 text-sm text-gray-700 space-y-1">
+                                    <li>30日間は誰でもアクセス可能</li>
+                                    <li>セットアップが簡単</li>
+                                    <li><strong>30日後に自動でアクセス不可</strong>になるため、後で本番ルールに変更必要</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-green-50 border-2 border-green-400 p-4 rounded-lg">
+                                <p class="font-bold text-green-800 mb-2">🔒 本番モードで開始（セキュア）</p>
+                                <ul class="list-disc ml-6 text-sm text-gray-700 space-y-1">
+                                    <li>初期状態ですべてのアクセスが拒否</li>
+                                    <li>手動でセキュリティルールを設定する必要あり</li>
+                                    <li>長期運用に適している</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-blue-50 p-4 rounded-lg mt-4">
+                                <p class="font-semibold text-blue-800 mb-2">💡 どちらを選ぶべき?</p>
+                                <p class="text-sm text-blue-700"><strong>初めての方: テストモード</strong>を選び、後でStep 3-3のセキュリティルールを設定してください。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">3</span>
+                            セキュリティルールの設定（本番運用時）
+                        </h3>
+                        <div class="ml-11">
+                            <p class="mb-3">左サイドバーの<strong>「ルール」</strong>タブで以下のルールを設定：</p>
+                            <div class="bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+<pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // すべてのコレクションへの読み書きを許可
+    // ⚠️ 校内ネットワーク限定での使用を推奨
+    match /{document=**} {
+      allow read, write: if true;
+    }
+    
+    // より安全な設定例（特定のコレクションのみ許可）
+    // match /students/{docId} {
+    //   allow read, write: if true;
+    // }
+    // match /consultations/{docId} {
+    //   allow read, write: if true;
+    // }
+    // match /surveys/{docId} {
+    //   allow read, write: if true;
+    // }
+  }
+}</pre>
+                            </div>
+                            <div class="bg-red-50 border-l-4 border-red-500 p-4 mt-4">
+                                <p class="font-semibold text-red-800">⚠️ セキュリティ注意</p>
+                                <ul class="list-disc ml-6 text-sm text-red-700 mt-2 space-y-1">
+                                    <li>上記ルールは<strong>すべてのアクセスを許可</strong>します</li>
+                                    <li><strong>校内ネットワーク限定</strong>での使用を強く推奨</li>
+                                    <li>インターネット公開する場合は認証機能の実装が必須</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">4</span>
+                            ロケーション選択
+                        </h3>
+                        <p class="ml-11 mb-2">データセンターの場所を選択します：</p>
+                        <ul class="ml-11 list-disc space-y-1 text-gray-700">
+                            <li><strong>asia-northeast1 (東京)</strong> - 推奨（日本での使用に最適）</li>
+                            <li><strong>asia-northeast2 (大阪)</strong> - 代替選択肢</li>
+                        </ul>
+                        <p class="ml-11 mt-2 text-sm text-gray-600">※ ロケーションは後から変更できません</p>
+                    </div>
+
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <p class="font-semibold text-green-800">✅ 完了</p>
+                        <p class="text-green-700 mt-1"><strong>「有効にする」</strong>をクリックして、Firestoreを有効化してください。</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button onclick="prevStep(2)" class="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>前へ戻る
+                    </button>
+                    <button onclick="nextStep(4)" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition">
+                        次へ進む <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: 接続情報取得 -->
+        <div class="step-content hidden" id="step4">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-key text-blue-600 mr-3"></i>
+                    Step 4: Firebase接続情報の取得
+                </h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">1</span>
+                            Web アプリを追加
+                        </h3>
+                        <ol class="ml-11 space-y-2 text-gray-700">
+                            <li>Firebase Consoleのプロジェクト概要ページに戻る</li>
+                            <li><strong>「&lt;/&gt;」アイコン</strong>（Webアプリ）をクリック</li>
+                            <li>アプリのニックネームを入力（例: karakoko-web）</li>
+                            <li><strong>「Firebase Hosting」は設定不要</strong>（チェックを外す）</li>
+                            <li><strong>「アプリを登録」</strong>をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">2</span>
+                            Firebase Config をコピー
+                        </h3>
+                        <p class="ml-11 mb-3">以下のような設定情報が表示されます：</p>
+                        <div class="ml-11 bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
+<pre>const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123:web:abc123"
+};</pre>
+                        </div>
+                        <p class="ml-11 text-sm text-gray-600">この情報を次のステップで入力します。メモ帳などに一時保存しておいてください。</p>
+                    </div>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                        <p class="font-semibold text-yellow-800">💡 後から確認する方法</p>
+                        <p class="text-yellow-700 mt-1">プロジェクト設定 → 全般 → マイアプリ → SDK の設定と構成 で再確認できます。</p>
+                    </div>
+
+                    <div class="bg-blue-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4">下記のフォームに接続情報を入力してください</h3>
+                        <form id="firebaseConfigForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">API Key *</label>
+                                <input type="text" id="apiKey" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                       placeholder="AIzaSy...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Auth Domain *</label>
+                                <input type="text" id="authDomain" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                       placeholder="your-project.firebaseapp.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Project ID *</label>
+                                <input type="text" id="projectId" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                       placeholder="your-project-id">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Storage Bucket *</label>
+                                <input type="text" id="storageBucket" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                       placeholder="your-project.appspot.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Messaging Sender ID *</label>
+                                <input type="text" id="messagingSenderId" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                       placeholder="123456789">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">App ID *</label>
+                                <input type="text" id="appId" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                       placeholder="1:123:web:abc123">
+                            </div>
+                        </form>
+
+                        <div class="mt-6 bg-white border-2 border-blue-500 rounded-lg p-4">
+                            <button onclick="testConnection()" 
+                                    class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-plug mr-2"></i>接続テストを実行
+                            </button>
+                            <div id="connectionResult" class="mt-4 hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button onclick="prevStep(3)" class="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>前へ戻る
+                    </button>
+                    <button id="step4NextBtn" onclick="nextStep(5)" disabled
+                            class="bg-gray-400 text-white px-8 py-3 rounded-lg cursor-not-allowed">
+                        次へ進む <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: データ移行 -->
+        <div class="step-content hidden" id="step5">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-exchange-alt text-blue-600 mr-3"></i>
+                    Step 5: データ移行と完了
+                </h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                        <p class="font-semibold text-blue-800">📦 現在のデータ状況</p>
+                        <div id="currentDataInfo" class="mt-2 text-blue-700"></div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg mb-4">データ移行オプション</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-white border-2 border-blue-300 rounded-lg p-4">
+                                <label class="flex items-start cursor-pointer">
+                                    <input type="radio" name="migrationOption" value="migrate" checked class="mt-1 mr-3">
+                                    <div>
+                                        <p class="font-semibold text-gray-800">localStorageのデータをFirestoreに移行する（推奨）</p>
+                                        <p class="text-sm text-gray-600 mt-1">既存の生徒データ・相談記録をすべてFirestoreにコピーします。localStorageのデータは残ります。</p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="bg-white border-2 border-gray-300 rounded-lg p-4">
+                                <label class="flex items-start cursor-pointer">
+                                    <input type="radio" name="migrationOption" value="fresh" class="mt-1 mr-3">
+                                    <div>
+                                        <p class="font-semibold text-gray-800">新規にFirestoreで開始する</p>
+                                        <p class="text-sm text-gray-600 mt-1">既存データは移行せず、Firestoreを空の状態から使い始めます。</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <button onclick="executeMigration()" 
+                                    class="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition text-lg font-semibold">
+                                <i class="fas fa-rocket mr-2"></i>Firebase接続を有効化
+                            </button>
+                        </div>
+
+                        <div id="migrationProgress" class="mt-4 hidden">
+                            <div class="bg-gray-200 rounded-full h-4 overflow-hidden">
+                                <div id="migrationProgressBar" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="migrationStatus" class="text-center mt-2 text-gray-700"></p>
+                        </div>
+
+                        <div id="migrationResult" class="mt-4 hidden"></div>
+                    </div>
+
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4 hidden" id="completionMessage">
+                        <p class="font-semibold text-green-800">🎉 設定完了！</p>
+                        <p class="text-green-700 mt-2">Firebaseデータベースが有効になりました。これで150-200台のPCから同時にアクセスできます。</p>
+                        <ul class="list-disc ml-6 mt-3 text-green-700 space-y-1">
+                            <li>すべてのデータはFirestoreに保存されます</li>
+                            <li>複数のPCで同じデータを共有できます</li>
+                            <li>データはリアルタイムで同期されます</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                        <p class="font-semibold text-yellow-800">💡 重要な情報</p>
+                        <ul class="list-disc ml-6 mt-2 text-yellow-700 space-y-1">
+                            <li><strong>無料枠制限:</strong> 読み取り50,000回/日、書き込み20,000回/日</li>
+                            <li><strong>通常使用:</strong> 200名の生徒で1日あたり約1,000-2,000回のアクセス</li>
+                            <li><strong>無料枠で十分使えます</strong></li>
+                            <li>Firebase Consoleで使用状況を確認できます</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button onclick="prevStep(4)" class="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>前へ戻る
+                    </button>
+                    <a href="teacher.html" id="completeBtn" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition hidden">
+                        <i class="fas fa-check mr-2"></i>教員画面に戻る
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            font-weight: bold;
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+        }
+        .step-indicator.active .step-circle {
+            background-color: #2563eb;
+            color: white;
+        }
+        .step-indicator.active p {
+            color: #2563eb;
+            font-weight: 600;
+        }
+        .step-indicator.completed .step-circle {
+            background-color: #10b981;
+            color: white;
+        }
+    </style>
+
+    <script>
+        let currentStep = 1;
+        let firebaseConfig = null;
+
+        // ステップ切り替え
+        function nextStep(step) {
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            document.querySelector(`[data-step="${currentStep}"]`).classList.remove('active');
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('completed');
+            
+            currentStep = step;
+            document.getElementById(`step${step}`).classList.remove('hidden');
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (step === 5) {
+                checkCurrentData();
+            }
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            document.querySelector(`[data-step="${currentStep}"]`).classList.remove('active');
+            
+            currentStep = step;
+            document.getElementById(`step${step}`).classList.remove('hidden');
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 接続テスト
+        async function testConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<p class="text-gray-600"><i class="fas fa-spinner fa-spin mr-2"></i>接続テスト中...</p>';
+
+            try {
+                // 設定値を取得
+                firebaseConfig = {
+                    apiKey: document.getElementById('apiKey').value.trim(),
+                    authDomain: document.getElementById('authDomain').value.trim(),
+                    projectId: document.getElementById('projectId').value.trim(),
+                    storageBucket: document.getElementById('storageBucket').value.trim(),
+                    messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
+                    appId: document.getElementById('appId').value.trim()
+                };
+
+                // 入力チェック
+                const emptyFields = Object.entries(firebaseConfig).filter(([key, value]) => !value);
+                if (emptyFields.length > 0) {
+                    throw new Error('すべての項目を入力してください');
+                }
+
+                // Firebase初期化
+                await window.firebaseAdapter.initialize(firebaseConfig);
+
+                // 接続テスト実行
+                const testResult = await window.firebaseAdapter.testConnection();
+
+                if (testResult.success) {
+                    resultDiv.innerHTML = `
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                            <p class="font-semibold text-green-800">✅ 接続成功！</p>
+                            <p class="text-green-700 mt-1">${testResult.message}</p>
+                        </div>
+                    `;
+                    
+                    // 設定を保存
+                    localStorage.setItem('firebase_config', JSON.stringify(firebaseConfig));
+                    
+                    // 次へボタンを有効化
+                    const nextBtn = document.getElementById('step4NextBtn');
+                    nextBtn.disabled = false;
+                    nextBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                    nextBtn.classList.add('bg-blue-600', 'hover:bg-blue-700', 'cursor-pointer');
+                } else {
+                    throw new Error(testResult.message);
+                }
+
+            } catch (error) {
+                console.error('接続テストエラー:', error);
+                resultDiv.innerHTML = `
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                        <p class="font-semibold text-red-800">❌ 接続失敗</p>
+                        <p class="text-red-700 mt-1">${error.message}</p>
+                        <p class="text-sm text-red-600 mt-2">設定内容を確認してください。</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 現在のデータ確認
+        function checkCurrentData() {
+            const students = JSON.parse(localStorage.getItem('table_students') || '[]');
+            const consultations = JSON.parse(localStorage.getItem('table_consultations') || '[]');
+            const surveys = JSON.parse(localStorage.getItem('table_surveys') || '[]');
+
+            const infoDiv = document.getElementById('currentDataInfo');
+            infoDiv.innerHTML = `
+                <ul class="space-y-1">
+                    <li><strong>生徒データ:</strong> ${students.length}件</li>
+                    <li><strong>相談記録:</strong> ${consultations.length}件</li>
+                    <li><strong>アンケート:</strong> ${surveys.length}件</li>
+                </ul>
+            `;
+        }
+
+        // データ移行実行
+        async function executeMigration() {
+            const option = document.querySelector('input[name="migrationOption"]:checked').value;
+            const progressDiv = document.getElementById('migrationProgress');
+            const resultDiv = document.getElementById('migrationResult');
+            const completionDiv = document.getElementById('completionMessage');
+            
+            progressDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            resultDiv.innerHTML = '';
+
+            try {
+                // Firebase初期化（念のため）
+                if (!window.firebaseAdapter.initialized) {
+                    const config = JSON.parse(localStorage.getItem('firebase_config'));
+                    await window.firebaseAdapter.initialize(config);
+                }
+
+                if (option === 'migrate') {
+                    // データ移行実行
+                    updateProgress(20, 'データ移行を開始しています...');
+                    
+                    const migrationResult = await window.firebaseAdapter.migrateFromLocalStorage();
+                    
+                    updateProgress(80, 'データ移行が完了しました');
+
+                    if (migrationResult.success) {
+                        resultDiv.innerHTML = `
+                            <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                                <p class="font-semibold text-green-800">✅ 移行成功！</p>
+                                <p class="text-green-700 mt-1">${migrationResult.message}</p>
+                                <div class="mt-2 text-sm text-green-700">
+                                    <p><strong>移行詳細:</strong></p>
+                                    <ul class="list-disc ml-6">
+                                        <li>生徒データ: ${migrationResult.details.students}件</li>
+                                        <li>相談記録: ${migrationResult.details.consultations}件</li>
+                                        <li>アンケート: ${migrationResult.details.surveys}件</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        throw new Error(migrationResult.message);
+                    }
+                } else {
+                    updateProgress(50, '新規設定を準備中...');
+                }
+
+                // Firebase使用フラグを有効化
+                updateProgress(90, '設定を保存中...');
+                localStorage.setItem('use_firebase', 'true');
+                
+                updateProgress(100, '完了！');
+                resultDiv.classList.remove('hidden');
+                completionDiv.classList.remove('hidden');
+                document.getElementById('completeBtn').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('移行エラー:', error);
+                progressDiv.classList.add('hidden');
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerHTML = `
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                        <p class="font-semibold text-red-800">❌ エラーが発生しました</p>
+                        <p class="text-red-700 mt-1">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function updateProgress(percent, message) {
+            document.getElementById('migrationProgressBar').style.width = percent + '%';
+            document.getElementById('migrationStatus').textContent = message;
+        }
+
+        // ページ読み込み時の処理
+        window.addEventListener('DOMContentLoaded', function() {
+            // 既存の設定を読み込み
+            const savedConfig = localStorage.getItem('firebase_config');
+            if (savedConfig) {
+                try {
+                    const config = JSON.parse(savedConfig);
+                    document.getElementById('apiKey').value = config.apiKey || '';
+                    document.getElementById('authDomain').value = config.authDomain || '';
+                    document.getElementById('projectId').value = config.projectId || '';
+                    document.getElementById('storageBucket').value = config.storageBucket || '';
+                    document.getElementById('messagingSenderId').value = config.messagingSenderId || '';
+                    document.getElementById('appId').value = config.appId || '';
+                } catch (e) {
+                    console.error('設定の読み込みエラー:', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カラココナビ（試験版） - けんこうチェック</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="css/student.css?v=20250109">
+</head>
+<body class="bg-gradient-to-br from-blue-100 via-green-50 to-yellow-100 font-inter min-h-screen">
+    
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-lg border-b-4 border-blue-400">
+        <div class="max-w-4xl mx-auto px-4 py-6">
+            <div class="flex items-center justify-center">
+                <div class="text-center">
+                    <div class="flex items-center justify-center mb-2">
+                        <i class="fas fa-heart text-red-500 text-4xl mr-3 animate-pulse"></i>
+                        <h1 class="text-3xl font-bold text-gray-800">けんこうチェック</h1>
+                        <i class="fas fa-smile text-yellow-500 text-4xl ml-3 animate-bounce"></i>
+                    </div>
+                    <p class="text-lg text-gray-600">じぶんのからだのようすを おしえてね</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        
+        <!-- ログイン画面 -->
+        <section id="loginSection" class="text-center">
+            <div class="bg-white rounded-3xl shadow-xl p-8 mb-8 border-4 border-blue-200">
+                <div class="mb-6">
+                    <i class="fas fa-user-circle text-blue-500 text-6xl mb-4"></i>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">だれですか？</h2>
+                    <p class="text-gray-600">じぶんのなまえを えらんでね</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                    <div>
+                        <label class="block text-lg font-medium text-gray-700 mb-3">がくねん</label>
+                        <select id="gradeSelect" class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-300 focus:border-blue-500">
+                            <option value="">えらんでね</option>
+                            <option value="1">1ねんせい</option>
+                            <option value="2">2ねんせい</option>
+                            <option value="3">3ねんせい</option>
+                            <option value="4">4ねんせい</option>
+                            <option value="5">5ねんせい</option>
+                            <option value="6">6ねんせい</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-lg font-medium text-gray-700 mb-3">くみ</label>
+                        <select id="classSelect" class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-300 focus:border-blue-500" disabled>
+                            <option value="">さきに がくねんを えらんでね</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-lg font-medium text-gray-700 mb-3">なまえ</label>
+                        <select id="studentSelect" class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-300 focus:border-blue-500" disabled>
+                            <option value="">さきに がくねんと くみを えらんでね</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="loginBtn" class="mt-8 px-8 py-4 bg-blue-500 text-white text-xl font-bold rounded-2xl hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transform hover:scale-105 transition-all disabled:bg-gray-300 disabled:transform-none" disabled>
+                    <i class="fas fa-arrow-right mr-2"></i>はじめる
+                </button>
+            </div>
+        </section>
+
+        <!-- 健康チェック画面 -->
+        <section id="healthCheckSection" class="hidden">
+            <div class="bg-white rounded-3xl shadow-xl p-8 border-4 border-green-200">
+                
+                <!-- 進捗表示 -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <span id="studentName"></span>さんの けんこうチェック
+                        </h2>
+                        <button id="logoutBtn" class="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600">
+                            <i class="fas fa-sign-out-alt mr-1"></i>もどる
+                        </button>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-4">
+                        <div id="progressBar" class="bg-green-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p class="text-center mt-2 text-gray-600">
+                        <span id="currentStep">1</span> / <span id="totalSteps">5</span>
+                    </p>
+                </div>
+
+                <form id="studentHealthForm">
+                    
+                    <!-- ステップ1: からだのちょうし -->
+                    <div id="step1" class="step-content">
+                        <div class="text-center mb-8">
+                            <i class="fas fa-thermometer-half text-red-500 text-6xl mb-4"></i>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-4">からだの ちょうしは？</h3>
+                            <p class="text-gray-600">あてはまるものを えらんでね（いくつでもOK）</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                            <label class="symptom-option cursor-pointer">
+                                <input type="checkbox" name="symptoms" value="げんき" class="hidden">
+                                <div class="p-4 border-3 border-gray-300 rounded-2xl hover:border-green-400 hover:bg-green-50 transition-all text-center">
+                                    <div class="text-4xl mb-2">😊</div>
+                                    <div class="text-lg font-medium">げんきです</div>
+                                </div>
+                            </label>
+                            <label class="symptom-option cursor-pointer">
+                                <input type="checkbox" name="symptoms" value="発熱" class="hidden">
+                                <div class="p-4 border-3 border-gray-300 rounded-2xl hover:border-red-400 hover:bg-red-50 transition-all text-center">
+                                    <div class="text-4xl mb-2">🤒</div>
+                                    <div class="text-lg font-medium">ねつがある</div>
+                                </div>
+                            </label>
+                            <label class="symptom-option cursor-pointer">
+                                <input type="checkbox" name="symptoms" value="咳" class="hidden">
+                                <div class="p-4 border-3 border-gray-300 rounded-2xl hover:border-orange-400 hover:bg-orange-50 transition-all text-center">
+                                    <div class="text-4xl mb-2">😷</div>
+                                    <div class="text-lg font-medium">せきがでる</div>
+                                </div>
+                            </label>
+                            <label class="symptom-option cursor-pointer">
+                                <input type="checkbox" name="symptoms" value="のどの痛み" class="hidden">
+                                <div class="p-4 border-3 border-gray-300 rounded-2xl hover:border-yellow-400 hover:bg-yellow-50 transition-all text-center">
+                                    <div class="text-4xl mb-2">🤧</div>
+                                    <div class="text-lg font-medium">のどがいたい</div>
+                                </div>
+                            </label>
+                            <label class="symptom-option cursor-pointer">
+                                <input type="checkbox" name="symptoms" value="頭痛" class="hidden">
+                                <div class="p-4 border-3 border-gray-300 rounded-2xl hover:border-purple-400 hover:bg-purple-50 transition-all text-center">
+                                    <div class="text-4xl mb-2">🤕</div>
+                                    <div class="text-lg font-medium">あたまがいたい</div>
+                                </div>
+                            </label>
+                            <label class="symptom-option cursor-pointer">
+                                <input type="checkbox" name="symptoms" value="腹痛" class="hidden">
+                                <div class="p-4 border-3 border-gray-300 rounded-2xl hover:border-green-400 hover:bg-green-50 transition-all text-center">
+                                    <div class="text-4xl mb-2">🤢</div>
+                                    <div class="text-lg font-medium">おなかがいたい</div>
+                                </div>
+                            </label>
+                            <label class="symptom-option cursor-pointer">
+                                <input type="checkbox" name="symptoms" value="だるさ" class="hidden">
+                                <div class="p-4 border-3 border-gray-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all text-center">
+                                    <div class="text-4xl mb-2">😪</div>
+                                    <div class="text-lg font-medium">だるい</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- ステップ2: つかれぐあい -->
+                    <div id="step2" class="step-content hidden">
+                        <div class="text-center mb-8">
+                            <i class="fas fa-battery-half text-green-500 text-6xl mb-4"></i>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-4">つかれぐあいは？</h3>
+                            <p class="text-gray-600">★をタッチして おしえてね</p>
+                        </div>
+
+                        <div class="max-w-md mx-auto">
+                            <div class="flex justify-center items-center space-x-2 mb-6">
+                                <button type="button" class="stress-star text-6xl text-gray-300 hover:text-yellow-400 transition-all" data-level="1">⭐</button>
+                                <button type="button" class="stress-star text-6xl text-gray-300 hover:text-yellow-400 transition-all" data-level="2">⭐</button>
+                                <button type="button" class="stress-star text-6xl text-gray-300 hover:text-yellow-400 transition-all" data-level="3">⭐</button>
+                                <button type="button" class="stress-star text-6xl text-gray-300 hover:text-yellow-400 transition-all" data-level="4">⭐</button>
+                                <button type="button" class="stress-star text-6xl text-gray-300 hover:text-yellow-400 transition-all" data-level="5">⭐</button>
+                            </div>
+                            <div class="text-center">
+                                <div class="flex justify-between text-lg font-medium text-gray-600">
+                                    <span>げんき</span>
+                                    <span>とても つかれた</span>
+                                </div>
+                                <div id="stressMessage" class="mt-4 text-xl font-bold text-blue-600">★を えらんでね</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ステップ3: きぶん -->
+                    <div id="step3" class="step-content hidden">
+                        <div class="text-center mb-8">
+                            <i class="fas fa-smile-beam text-yellow-500 text-6xl mb-4"></i>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-4">きょうの きぶんは？</h3>
+                            <p class="text-gray-600">いちばん ちかいものを えらんでね</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                            <button type="button" class="mood-btn p-6 border-3 border-gray-300 rounded-2xl hover:border-yellow-400 hover:bg-yellow-50 transition-all" data-mood="元気">
+                                <div class="text-4xl mb-2">😊</div>
+                                <div class="text-lg font-medium">げんき</div>
+                            </button>
+                            <button type="button" class="mood-btn p-6 border-3 border-gray-300 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all" data-mood="ふつう">
+                                <div class="text-4xl mb-2">😐</div>
+                                <div class="text-lg font-medium">ふつう</div>
+                            </button>
+                            <button type="button" class="mood-btn p-6 border-3 border-gray-300 rounded-2xl hover:border-orange-400 hover:bg-orange-50 transition-all" data-mood="不安">
+                                <div class="text-4xl mb-2">😟</div>
+                                <div class="text-lg font-medium">しんぱい</div>
+                            </button>
+                            <button type="button" class="mood-btn p-6 border-3 border-gray-300 rounded-2xl hover:border-red-400 hover:bg-red-50 transition-all" data-mood="イライラ">
+                                <div class="text-4xl mb-2">😠</div>
+                                <div class="text-lg font-medium">いらいら</div>
+                            </button>
+                            <button type="button" class="mood-btn p-6 border-3 border-gray-300 rounded-2xl hover:border-purple-400 hover:bg-purple-50 transition-all" data-mood="眠い">
+                                <div class="text-4xl mb-2">😴</div>
+                                <div class="text-lg font-medium">ねむい</div>
+                            </button>
+                            <button type="button" class="mood-btn p-6 border-3 border-gray-300 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50 transition-all" data-mood="悲しい">
+                                <div class="text-4xl mb-2">😢</div>
+                                <div class="text-lg font-medium">かなしい</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ステップ4: せんせいに そうだん -->
+                    <div id="step4" class="step-content hidden">
+                        <div class="text-center mb-8">
+                            <i class="fas fa-comment-heart text-pink-500 text-6xl mb-4"></i>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-4">せんせいに そうだんしたいことは ありますか？</h3>
+                            <p class="text-gray-600">ひとりで なやまないで せんせいに はなしてね</p>
+                        </div>
+
+                        <div class="max-w-2xl mx-auto space-y-6">
+                            <!-- 相談があるかどうかの選択 -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button type="button" class="consultation-choice p-6 border-3 border-gray-300 rounded-2xl hover:border-green-400 hover:bg-green-50 transition-all text-center" data-choice="none">
+                                    <div class="text-4xl mb-2">😊</div>
+                                    <div class="text-lg font-medium">そうだんは ありません</div>
+                                </button>
+                                
+                                <button type="button" class="consultation-choice p-6 border-3 border-gray-300 rounded-2xl hover:border-pink-400 hover:bg-pink-50 transition-all text-center" data-choice="have">
+                                    <div class="text-4xl mb-2">🙋</div>
+                                    <div class="text-lg font-medium">そうだんしたいです</div>
+                                </button>
+                            </div>
+
+                            <!-- 相談内容入力エリア（最初は非表示） -->
+                            <div id="consultationArea" class="hidden">
+                                <div class="bg-white rounded-2xl p-6 border-3 border-pink-200">
+                                    <h4 class="text-xl font-bold text-gray-800 mb-4 text-center">どんなことを そうだんしたいですか？</h4>
+                                    
+                                    <!-- 相談内容の選択肢 -->
+                                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                                        <label class="consultation-option cursor-pointer">
+                                            <input type="checkbox" name="consultation_topics" value="おともだちのこと" class="hidden">
+                                            <div class="p-3 border-2 border-gray-300 rounded-xl hover:border-pink-400 hover:bg-pink-50 transition-all text-center">
+                                                <div class="text-3xl mb-1">👫</div>
+                                                <div class="text-sm font-medium">おともだちのこと</div>
+                                            </div>
+                                        </label>
+                                        <label class="consultation-option cursor-pointer">
+                                            <input type="checkbox" name="consultation_topics" value="べんきょうのこと" class="hidden">
+                                            <div class="p-3 border-2 border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all text-center">
+                                                <div class="text-3xl mb-1">📚</div>
+                                                <div class="text-sm font-medium">べんきょうのこと</div>
+                                            </div>
+                                        </label>
+                                        <label class="consultation-option cursor-pointer">
+                                            <input type="checkbox" name="consultation_topics" value="おうちのこと" class="hidden">
+                                            <div class="p-3 border-2 border-gray-300 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all text-center">
+                                                <div class="text-3xl mb-1">🏠</div>
+                                                <div class="text-sm font-medium">おうちのこと</div>
+                                            </div>
+                                        </label>
+                                        <label class="consultation-option cursor-pointer">
+                                            <input type="checkbox" name="consultation_topics" value="からだのこと" class="hidden">
+                                            <div class="p-3 border-2 border-gray-300 rounded-xl hover:border-red-400 hover:bg-red-50 transition-all text-center">
+                                                <div class="text-3xl mb-1">💊</div>
+                                                <div class="text-sm font-medium">からだのこと</div>
+                                            </div>
+                                        </label>
+                                        <label class="consultation-option cursor-pointer">
+                                            <input type="checkbox" name="consultation_topics" value="きもちのこと" class="hidden">
+                                            <div class="p-3 border-2 border-gray-300 rounded-xl hover:border-purple-400 hover:bg-purple-50 transition-all text-center">
+                                                <div class="text-3xl mb-1">💭</div>
+                                                <div class="text-sm font-medium">きもちのこと</div>
+                                            </div>
+                                        </label>
+                                        <label class="consultation-option cursor-pointer">
+                                            <input type="checkbox" name="consultation_topics" value="そのほか" class="hidden">
+                                            <div class="p-3 border-2 border-gray-300 rounded-xl hover:border-orange-400 hover:bg-orange-50 transition-all text-center">
+                                                <div class="text-3xl mb-1">✨</div>
+                                                <div class="text-sm font-medium">そのほか</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    
+                                    <!-- 自由記述欄 -->
+                                    <div class="mt-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2 text-center">くわしく おしえてね（かかなくても OK）</label>
+                                        <textarea 
+                                            id="consultationContent" 
+                                            rows="4" 
+                                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 focus:border-pink-500 text-lg resize-none"
+                                            placeholder="もっと くわしく はなしたいことが あったら ここに かいてね"
+                                        ></textarea>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <h5 class="text-lg font-medium text-gray-800 mb-3 text-center">だれせんせいに そうだんしたいですか？</h5>
+                                        <select id="teacherSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 focus:border-pink-500 text-lg">
+                                            <option value="">せんせいを えらんでね</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ステップ5: かくにん -->
+                    <div id="step5" class="step-content hidden">
+                        <div class="text-center mb-8">
+                            <i class="fas fa-check-circle text-green-500 text-6xl mb-4"></i>
+                            <h3 class="text-3xl font-bold text-gray-800 mb-4">かくにんしてね</h3>
+                            <p class="text-gray-600">だいじょうぶですか？</p>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-2xl p-6 max-w-2xl mx-auto">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-3 bg-white rounded-xl">
+                                    <span class="font-medium">きぶん:</span>
+                                    <span id="confirmMood" class="text-lg">-</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-white rounded-xl">
+                                    <span class="font-medium">つかれぐあい:</span>
+                                    <span id="confirmStress" class="text-lg">-</span>
+                                </div>
+                                <div class="p-3 bg-white rounded-xl">
+                                    <div class="font-medium mb-2">からだのちょうし:</div>
+                                    <div id="confirmSymptoms" class="text-lg">-</div>
+                                </div>
+                                <div class="p-3 bg-white rounded-xl">
+                                    <div class="font-medium mb-2">せんせいへの そうだん:</div>
+                                    <div id="confirmConsultation" class="text-lg text-gray-600 italic">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ナビゲーションボタン -->
+                    <div class="flex justify-between mt-12">
+                        <button type="button" id="prevBtn" class="px-6 py-3 bg-gray-500 text-white text-lg font-bold rounded-xl hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 disabled:bg-gray-300" disabled>
+                            <i class="fas fa-arrow-left mr-2"></i>まえへ
+                        </button>
+                        
+                        <button type="button" id="nextBtn" class="px-6 py-3 bg-blue-500 text-white text-lg font-bold rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:bg-gray-300" disabled>
+                            つぎへ<i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                        
+                        <button type="submit" id="submitBtn" class="hidden px-6 py-3 bg-green-500 text-white text-lg font-bold rounded-xl hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300">
+                            <i class="fas fa-paper-plane mr-2"></i>おくる
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+        <!-- 完了画面 -->
+        <section id="completeSection" class="hidden text-center">
+            <div class="bg-white rounded-3xl shadow-xl p-8 border-4 border-green-200">
+                <div class="mb-6">
+                    <i class="fas fa-heart text-pink-500 text-8xl mb-4 animate-pulse"></i>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">おしえてくれて　ありがとう</h2>
+                    <p class="text-xl text-gray-600 mb-6">けんこうチェックが おわりました</p>
+                    <div class="text-6xl mb-4">💝</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="text-center py-8 text-gray-500">
+        <p>けんこうに きをつけて すごしてね 💙</p>
+    </footer>
+
+    <!-- データ管理 -->
+    <script src="js/static-data-manager.js"></script>
+    <script src="js/firebase-adapter.js"></script>
+    <script src="js/supabase-adapter.js"></script>
+    <script src="js/api-adapter.js"></script>
+    <script>
+        // データベースの設定をチェックして適切なアダプターを選択
+        (async function initializeAdapter() {
+            // Supabase設定（全端末で共通）
+            const SUPABASE_CONFIG = {
+                url: 'https://gcvaczijcdgzaoaxwhpz.supabase.co',
+                key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjdmFjemlqY2RnemFvYXh3aHB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwODEyNTksImV4cCI6MjA3OTY1NzI1OX0.mu-ky-N0bUbRlkKvH9DUAJiUT2CXDvY4hPFJfjGwlKI'
+            };
+            
+            // Supabaseモードをチェック
+            let useSupabase = localStorage.getItem('use_supabase') === 'true';
+            
+            // デフォルトでSupabaseモードを有効化
+            if (!useSupabase && !localStorage.getItem('use_firebase')) {
+                console.log('🔧 Supabaseモードを自動適用中...');
+                localStorage.setItem('use_supabase', 'true');
+                useSupabase = true;
+                console.log('✅ Supabaseモードを自動適用しました');
+            }
+            
+            if (useSupabase) {
+                try {
+                    console.log('☁️ Supabaseモードで起動');
+                    
+                    // Supabaseアダプターを初期化
+                    window.supabaseAdapter = new SupabaseAdapter(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+                    
+                    // fetch関数をSupabase版に置き換え
+                    window.originalFetch = window.fetch;
+                    window.fetch = function(url, options) {
+                        if (url.startsWith('tables/')) {
+                            return window.supabaseAdapter.fetch(url, options);
+                        } else {
+                            return window.originalFetch(url, options);
+                        }
+                    };
+                    
+                    console.log('✅ Supabase初期化完了');
+                } catch (error) {
+                    console.error('❌ Supabase初期化エラー:', error);
+                    console.warn('⚠️ Supabaseに接続できませんでした。localStorageモードで動作します。');
+                }
+                return; // Supabaseモードの場合はここで終了
+            }
+            
+            // 以下、FirebaseまたはlocalStorageモードの処理
+            const DEFAULT_FIREBASE_CONFIG = {
+                apiKey: "YOUR_API_KEY",
+                authDomain: "YOUR_PROJECT.firebaseapp.com",
+                projectId: "YOUR_PROJECT_ID",
+                storageBucket: "YOUR_PROJECT.appspot.com",
+                messagingSenderId: "YOUR_SENDER_ID",
+                appId: "YOUR_APP_ID"
+            };
+            
+            let useFirebase = localStorage.getItem('use_firebase') === 'true';
+            let firebaseConfigStr = localStorage.getItem('firebase_config');
+            
+            if (useFirebase && firebaseConfigStr) {
+                try {
+                    console.log('🔥 Firebaseモードで起動');
+                    const firebaseConfig = JSON.parse(firebaseConfigStr);
+                    
+                    await window.firebaseAdapter.initialize(firebaseConfig);
+                    
+                    window.originalFetch = window.fetch;
+                    window.fetch = function(url, options) {
+                        if (url.startsWith('tables/')) {
+                            return window.firebaseAdapter.fetch(url, options);
+                        } else {
+                            return window.originalFetch(url, options);
+                        }
+                    };
+                    
+                    console.log('✅ Firebase初期化完了');
+                } catch (error) {
+                    console.error('❌ Firebase初期化エラー:', error);
+                    // 児童用画面ではエラーメッセージのみ表示（自動的にlocalStorageにフォールバック）
+                    console.warn('⚠️ Firebaseに接続できませんでした。localStorageモードで動作します。');
+                }
+            } else {
+                console.log('💾 ローカルストレージモードで起動');
+                
+                // StaticDataManagerのインスタンスを作成（APIAdapterより先に！）
+                if (typeof StaticDataManager !== 'undefined') {
+                    window.staticDataManager = new StaticDataManager();
+                    console.log('✅ StaticDataManager初期化完了');
+                } else {
+                    console.error('❌ StaticDataManagerが読み込まれていません');
+                }
+                
+                // localStorageモードの場合、APIAdapterでfetchをインターセプト
+                if (typeof APIAdapter !== 'undefined') {
+                    window.apiAdapter = new APIAdapter();
+                    
+                    // APIAdapterのdataManagerを確実に設定
+                    if (window.staticDataManager) {
+                        window.apiAdapter.dataManager = window.staticDataManager;
+                        console.log('✅ APIAdapter.dataManager設定完了');
+                    }
+                    
+                    window.originalFetch = window.fetch;
+                    window.fetch = function(url, options) {
+                        if (url.startsWith('tables/')) {
+                            return window.apiAdapter.fetch(url, options);
+                        } else {
+                            return window.originalFetch(url, options);
+                        }
+                    };
+                    console.log('✅ APIAdapter初期化完了（localStorageモード）');
+                } else {
+                    console.error('❌ APIAdapterが読み込まれていません');
+                }
+            }
+        })();
+    </script>
+    <!-- 既存スクリプト -->
+    <script src="js/student.js?v=20250109order"></script>
+</body>
+</html>
