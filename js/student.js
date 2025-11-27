@@ -573,9 +573,10 @@ class StudentHealthCheck {
                 temperature: null, // 児童入力では体温は測定しない
                 notes: `児童自身による入力 - 気分: ${this.formData.mood}, ストレス: ${this.formData.stress_level}`,
                 recorded_by: '児童本人',
-                date: new Date().toISOString()
+               date: new Date().toISOString(),
+                created_at: Date.now(),
+                updated_at: Date.now()
             };
-
             // 並列処理用のPromise配列
             const promises = [];
 
