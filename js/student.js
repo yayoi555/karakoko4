@@ -607,14 +607,18 @@ class StudentHealthCheck {
                 const combinedContent = contentParts.join(' ');
                 
                 const consultationData = {
+                     const consultationData = {
                     student_id: this.formData.student_id,
                     teacher_id: this.formData.consultation_teacher,
+                    content: combinedContent,
                     consultation_content: combinedContent,
                     status: '新規',
                     date: new Date().toISOString(),
-                    teacher_response: null
+                    response: null,
+                    teacher_response: null,
+                    created_at: Date.now(),
+                    updated_at: Date.now()
                 };
-
                 promises.push(
                     fetch('tables/consultations', {
                         method: 'POST',
