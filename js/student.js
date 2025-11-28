@@ -90,9 +90,10 @@ class StudentHealthCheck {
         });
 
         // ステップ4: 先生へのメッセージ
-        document.getElementById('messageToTeacher').addEventListener('input', () => {
-            this.updateMessage();
-        });
+       const messageToTeacher = document.getElementById('messageToTeacher');
+if (messageToTeacher) {
+    messageToTeacher.addEventListener('input', () => {
+
 
         // 完了画面
         // document.getElementById('checkAgainBtn').addEventListener('click', () => this.resetForm());
