@@ -607,7 +607,6 @@ class StudentHealthCheck {
                 const combinedContent = contentParts.join(' ');
                 
                 const consultationData = {
-                    const consultationData = {
                     student_id: this.formData.student_id,
                     teacher_id: this.formData.consultation_teacher,
                     content: combinedContent,
