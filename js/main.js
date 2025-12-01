@@ -261,7 +261,72 @@ class HealthManagementSystem {
         let cautionCount = 0;
         let feverCount = 0;
 
-        todayRecords.forEach(record => {
+        filteredRecords.forEach(record => {
+② 362行目付近 (updateSymptomsChart):
+
+Copy// 追加
+// フィルターされた記録を取得
+const filteredRecords = this.filterRecordsByDate(this.healthRecords);
+
+// 症状の集計
+const symptomCount = {};
+filteredRecords.forEach(record => {  // ← this.healthRecordsから変更
+③ 420行目付近 (updateMoodChart):
+
+Copy// 追加
+// フィルターされた記録を取得
+const filteredRecords = this.filterRecordsByDate(this.healthRecords);
+
+// 気分の集計
+const moodCount = {};
+filteredRecords.forEach(record => {  // ← this.healthRecordsから変更
+コミット
+→ 画面下部で Commit message: Fix: Apply date filter to statistics and charts
+→ Commit changes をクリック
+
+🚀 方法2: ファイル再アップロード（超簡単・1分）
+修正済みファイルをダウンロード
+→ このチャットの「Files」タブから js/main.js をダウンロード
+
+GitHub上の古いファイルを削除
+→ https://github.com/yayoi555/karakoko4/blob/main/js/main.js
+→ 右上の「…」メニュー → Delete file
+→ Commit changes
+
+新しいファイルをアップロード
+→ https://github.com/yayoi555/karakoko4/tree/main/js
+→ Add file → Upload files
+→ ダウンロードした main.js をドラッグ&ドロップ
+→ Commit changes
+
+✅ アップロード後の確認手順
+1️⃣ GitHub Actionsの完了を待つ (1〜3分)
+→ https://github.com/yayoi555/karakoko4/actions
+→ pages build and deployment が ✅ 緑チェックになるまで待つ
+
+2️⃣ デプロイ済みファイルを確認
+→ https://yayoi555.github.io/karakoko4/js/main.js を新しいタブで開く
+→ Ctrl+F で 339 を検索 → filteredRecords.forEach になっていることを確認
+
+3️⃣ teacher.htmlをテスト
+シークレットモード(Incognito) で開く:
+→ https://yayoi555.github.io/karakoko4/teacher.html
+→ ログイン後、ダッシュボードで 「今日」「今週」「今月」「全期間」 ボタンを切り替える
+
+4️⃣ コンソールで確認（オプション）
+F12 → Console で以下を実行:
+
+Copyconsole.log('現在のフィルター:', window.healthSystem.dateFilter);
+console.log('健康記録数:', window.healthSystem.healthRecords.length);
+どちらの方法で進めますか?
+
+A: GitHub Webエディタで修正
+B: ファイル再アップロード（ダウンロード→削除→アップロード）
+または、既にアップロード済みの場合は「✅ 完了しました!」とお知らせください 😊
+
+コピー
+Notionに保存
+
             const temp = parseFloat(record.temperature);
             const symptoms = record.symptoms || [];
             
