@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カラココナビ（試験版） - 教員用システム</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="css/style.css?v=20250109d">
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <i class="fas fa-heart-pulse text-red-500 text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold text-gray-900">カラココナビ（試験版）</h1>
+                    <div class="ml-4 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                        静的運用モード
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="firebase-setup.html" class="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium" title="データベース設定">
+                        <i class="fas fa-cog mr-1"></i>DB設定
+                    </a>
+                    <button id="exportDataBtn" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium" title="データバックアップ">
+                        <i class="fas fa-download mr-1"></i>バックアップ
+                    </button>
+                    <button id="importDataBtn" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium" title="データ復元">
+                        <i class="fas fa-upload mr-1"></i>復元
+                    </button>
+                    <a href="student.html" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium">
+                        <i class="fas fa-child mr-1"></i>児童用画面
+                    </a>
+                    <span id="currentDate" class="text-sm text-gray-600"></span>
+                    <span class="text-sm text-gray-600">教員専用</span>
+                    <button id="logoutBtn" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
+                        <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインナビゲーション -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button id="navDashboard" class="nav-button active px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-chart-pie mr-2"></i>ダッシュボード
+                </button>
+                <button id="navHealthCheck" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-thermometer-half mr-2"></i>健康チェック
+                </button>
+                <button id="navStudents" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-users mr-2"></i>児童管理
+                </button>
+                <button id="navRecords" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-clipboard-list mr-2"></i>記録一覧
+                </button>
+                <button id="navConsultations" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-comments mr-2"></i>相談一覧
+                </button>
+                <button id="navTeachers" class="nav-button px-4 py-3 text-sm font-medium border-b-2">
+                    <i class="fas fa-chalkboard-teacher mr-2"></i>教員管理
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- ダッシュボードセクション -->
+        <section id="dashboard" class="content-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">健康状況ダッシュボード</h2>
+                <p class="text-gray-600">全校児童の健康状態を一目で確認できます</p>
+                
+                <!-- 期間フィルター -->
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <button id="filterToday" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        <i class="fas fa-calendar-day mr-2"></i>今日
+                    </button>
+                    <button id="filterWeek" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                        <i class="fas fa-calendar-week mr-2"></i>今週
+                    </button>
+                    <button id="filterMonth" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                        <i class="fas fa-calendar-alt mr-2"></i>今月
+                    </button>
+                    <button id="filterAll" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                        <i class="fas fa-calendar mr-2"></i>全期間
+                    </button>
+                    <span id="filterDateRange" class="ml-4 px-4 py-2 text-sm text-gray-600 self-center font-medium"></span>
+                </div>
+            </div>
+
+            <!-- 統計カード -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">健康良好</p>
+                            <p id="healthyCount" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-exclamation-triangle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">要注意</p>
+                            <p id="cautionCount" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600">
+                            <i class="fas fa-thermometer-full text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">発熱者</p>
+                            <p id="feverCount" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">総児童数</p>
+                            <p id="totalStudents" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- チャート -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">症状別統計</h3>
+                    <div style="height: 300px;">
+                        <canvas id="symptomsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">気分・ストレス状況</h3>
+                    <div style="height: 300px;">
+                        <canvas id="moodChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 健康チェックセクション -->
+        <section id="healthCheck" class="content-section hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">健康チェック入力</h2>
+                <p class="text-gray-600">児童の体調と心の健康状態を記録します</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <form id="healthForm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 児童選択 -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">児童選択</label>
+                            <select id="studentSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                <option value="">児童を選択してください</option>
+                            </select>
+                        </div>
+
+                        <!-- 体温 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">体温 (℃)</label>
+                            <input type="number" id="temperature" step="0.1" min="35" max="42" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <!-- 気分 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">気分</label>
+                            <select id="mood" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">選択してください</option>
+                                <option value="元気">元気</option>
+                                <option value="ふつう">ふつう</option>
+                                <option value="不安">不安</option>
+                                <option value="イライラ">イライラ</option>
+                                <option value="眠い">眠い</option>
+                                <option value="悲しい">悲しい</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+
+                        <!-- ストレスレベル -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">ストレスレベル (1-5)</label>
+                            <div class="flex space-x-2">
+                                <input type="range" id="stressLevel" min="1" max="5" value="1" class="flex-1">
+                                <span id="stressValue" class="text-sm font-medium text-gray-700 min-w-[20px]">1</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>低い</span>
+                                <span>高い</span>
+                            </div>
+                        </div>
+
+                        <!-- 症状チェックボックス -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">症状 (該当するものにチェック)</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="発熱" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">発熱</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="咳" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">咳</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="のどの痛み" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">のどの痛み</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="頭痛" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">頭痛</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="腹痛" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">腹痛</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="吐き気" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">吐き気</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="下痢" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">下痢</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="発疹" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">発疹</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="だるさ" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">だるさ</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="symptoms" value="その他" class="rounded text-blue-600">
+                                    <span class="ml-2 text-sm">その他</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 備考 -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">備考・特記事項</label>
+                            <textarea id="notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="気になる点や詳細があれば記入してください"></textarea>
+                        </div>
+
+                        <!-- 記録者 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">記録者（教員名）</label>
+                            <input type="text" id="recordedBy" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="山田 太郎">
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end space-x-4">
+                        <button type="button" id="clearForm" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            クリア
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-save mr-2"></i>記録を保存
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- 児童管理セクション -->
+        <section id="students" class="content-section hidden">
+            <div class="mb-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">児童管理</h2>
+                    <p class="text-gray-600">児童の基本情報を管理します</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="addStudentBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-plus mr-2"></i>児童を追加
+                    </button>
+                    <button id="exportStudentsCSVBtn" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <i class="fas fa-file-export mr-2"></i>CSVエクスポート
+                    </button>
+                    <button id="importStudentsCSVBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-file-csv mr-2"></i>CSV一括登録
+                    </button>
+                    <button id="deleteAllStudentsBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <i class="fas fa-trash-alt mr-2"></i>全件削除
+                    </button>
+                    <a href="templates/students_template.csv" download class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        <i class="fas fa-download mr-2"></i>テンプレート
+                    </a>
+                </div>
+            </div>
+
+            <!-- 統計情報 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-sm text-gray-600">総児童数</div>
+                    <div id="totalStudentsCount" class="text-2xl font-bold text-gray-900">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-sm text-gray-600">在籍中</div>
+                    <div id="activeStudentsCount" class="text-2xl font-bold text-green-600">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-sm text-gray-600">退学者</div>
+                    <div id="inactiveStudentsCount" class="text-2xl font-bold text-gray-500">0</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-sm text-gray-600">登録可能数</div>
+                    <div id="remainingCapacity" class="text-2xl font-bold text-blue-600">∞</div>
+                    <div class="text-xs text-gray-500 mt-1">localStorage制限まで</div>
+                </div>
+            </div>
+
+            <!-- 検索・フィルターエリア -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">検索</label>
+                        <input type="text" id="searchStudentInput" 
+                               placeholder="学籍番号、氏名で検索" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">学年</label>
+                        <select id="filterStudentGrade" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全学年</option>
+                            <option value="1">1年生</option>
+                            <option value="2">2年生</option>
+                            <option value="3">3年生</option>
+                            <option value="4">4年生</option>
+                            <option value="5">5年生</option>
+                            <option value="6">6年生</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">クラス</label>
+                        <input type="text" id="filterStudentClass" 
+                               placeholder="A組、B組など" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">状態</label>
+                        <select id="filterStudentStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">すべて</option>
+                            <option value="active">在籍のみ</option>
+                            <option value="inactive">退学のみ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-between items-center">
+                    <button id="clearStudentFilter" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                        <i class="fas fa-undo mr-2"></i>フィルタクリア
+                    </button>
+                    <div class="text-sm text-gray-600">
+                        並び順: 学籍番号順
+                    </div>
+                </div>
+            </div>
+
+            <!-- 児童一覧 -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900">児童一覧</h3>
+                    <div class="text-sm text-gray-600">
+                        <span id="displayedStudentsCount">0</span>名表示中
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">学籍番号</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">氏名</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">学年</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">クラス</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状態</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- 児童データがここに表示されます -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 記録一覧セクション -->
+        <section id="records" class="content-section hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">健康記録一覧</h2>
+                <p class="text-gray-600">過去の健康チェック記録を確認できます</p>
+            </div>
+
+            <!-- フィルター -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">健康状態</label>
+                        <select id="filterHealthStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">全て</option>
+                            <option value="healthy">🟢 健康良好</option>
+                            <option value="caution">🟡 要注意</option>
+                            <option value="fever">🔴 発熱者</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">学年</label>
+                        <select id="filterGrade" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">全学年</option>
+                            <option value="1">1年生</option>
+                            <option value="2">2年生</option>
+                            <option value="3">3年生</option>
+                            <option value="4">4年生</option>
+                            <option value="5">5年生</option>
+                            <option value="6">6年生</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">日付から</label>
+                        <input type="date" id="dateFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">日付まで</label>
+                        <input type="date" id="dateTo" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">児童</label>
+                        <select id="filterStudent" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">全員</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="filterRecords" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            <i class="fas fa-search mr-2"></i>検索
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- ソート機能 -->
+                <div class="border-t pt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">並び替え</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button id="sortDateDesc" class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
+                            📅 日時 (新しい順)
+                        </button>
+                        <button id="sortDateAsc" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors">
+                            📅 日時 (古い順)
+                        </button>
+                        <button id="sortTempDesc" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors">
+                            🌡️ 体温 (高い順)
+                        </button>
+                        <button id="sortTempAsc" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors">
+                            🌡️ 体温 (低い順)
+                        </button>
+                        <button id="sortStressDesc" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors">
+                            😰 ストレス (高い順)
+                        </button>
+                        <button id="sortStressAsc" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors">
+                            😰 ストレス (低い順)
+                        </button>
+                        <button id="sortName" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors">
+                            👤 児童名 (50音順)
+                        </button>
+                        <button id="sortGrade" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors">
+                            📚 学年・クラス順
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 記録一覧テーブル -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">健康記録</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日時</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">学年</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">児童名</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">体温</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">症状</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">気分</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ストレス</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">記録者</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- 記録データがここに表示されます -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 相談一覧セクション -->
+        <section id="consultations" class="content-section hidden">
+            <div class="mb-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">相談一覧</h2>
+                    <p class="text-gray-600">児童からの相談内容を確認・管理できます</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="exportToSheetsBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-file-export mr-2"></i>Googleスプレッドシートに出力
+                    </button>
+                    <button id="refreshConsultationsBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-sync-alt mr-2"></i>更新
+                    </button>
+                </div>
+            </div>
+
+            <!-- フィルター -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">ステータス</label>
+                        <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">全て</option>
+                            <option value="新規">新規</option>
+                            <option value="確認済み">確認済み</option>
+                            <option value="対応中">対応中</option>
+                            <option value="解決済み">解決済み</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">相談先教員</label>
+                        <select id="teacherFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">全員</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">日付から</label>
+                        <input type="date" id="consultationDateFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="flex items-end">
+                        <button id="filterConsultations" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            <i class="fas fa-search mr-2"></i>検索
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 統計サマリー -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600">
+                            <i class="fas fa-exclamation-circle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">新規相談</p>
+                            <p id="newConsultationsCount" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-clock text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">対応中</p>
+                            <p id="inProgressCount" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">解決済み</p>
+                            <p id="resolvedCount" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-comments text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">総相談数</p>
+                            <p id="totalConsultationsCount" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 相談一覧テーブル -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">相談記録</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日時</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">児童名</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">相談先</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">相談内容</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="consultationsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- 相談データがここに表示されます -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 教員管理セクション -->
+        <section id="teachers" class="content-section hidden">
+            <div class="mb-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">教員管理</h2>
+                    <p class="text-gray-600">システムに登録されている教員の情報を管理できます</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="addTeacherBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-plus mr-2"></i>教員を追加
+                    </button>
+                    <button id="importTeachersCSVBtn" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <i class="fas fa-file-csv mr-2"></i>CSV一括登録
+                    </button>
+                    <button id="exportTeachersBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-file-export mr-2"></i>CSVエクスポート
+                    </button>
+                    <a href="templates/teachers_template.csv" download class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 inline-flex items-center">
+                        <i class="fas fa-download mr-2"></i>テンプレート
+                    </a>
+                    <button id="refreshTeachersBtn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        <i class="fas fa-sync-alt mr-2"></i>更新
+                    </button>
+                </div>
+            </div>
+
+            <!-- 検索・フィルター -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">教員名検索</label>
+                        <input type="text" id="teacherNameSearch" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
+                               placeholder="教員名を入力...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">担当学年</label>
+                        <select id="gradeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">全て</option>
+                            <option value="1年">1年</option>
+                            <option value="2年">2年</option>
+                            <option value="3年">3年</option>
+                            <option value="4年">4年</option>
+                            <option value="5年">5年</option>
+                            <option value="6年">6年</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="searchTeachers" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            <i class="fas fa-search mr-2"></i>検索
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 統計サマリー -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600">総教員数</p>
+                            <p id="totalTeachers" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <div class="ml-4">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-chalkboard-teacher text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600">担任教員</p>
+                            <p id="classTeachers" class="text-3xl font-bold text-green-600">0</p>
+                        </div>
+                        <div class="ml-4">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-users text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600">専科教員</p>
+                            <p id="subjectTeachers" class="text-3xl font-bold text-orange-600">0</p>
+                        </div>
+                        <div class="ml-4">
+                            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-book text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-600">管理職</p>
+                            <p id="adminTeachers" class="text-3xl font-bold text-purple-600">0</p>
+                        </div>
+                        <div class="ml-4">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-crown text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 教員一覧テーブル -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">教員一覧</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">教員名</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">担当学年</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">担当教科</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">役職</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">連絡先</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">登録日</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachersTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- 教員データがここに動的に挿入されます -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- ページネーション -->
+                <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <button id="prevPageTeachers" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            前へ
+                        </button>
+                        <button id="nextPageTeachers" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            次へ
+                        </button>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                <span id="teachersInfo">教員情報を読み込み中...</span>
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <button id="prevPageTeachers" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="teachersPageInfo" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                    1 / 1
+                                </span>
+                                <button id="nextPageTeachers" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 児童追加モーダル -->
+    <div id="studentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">児童を追加</h3>
+            </div>
+            <form id="studentForm">
+                <div class="px-6 py-4 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">学籍番号</label>
+                        <input type="text" id="studentId" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">氏名</label>
+                        <input type="text" id="studentName" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">学年</label>
+                        <select id="studentGrade" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">選択してください</option>
+                            <option value="1">1年生</option>
+                            <option value="2">2年生</option>
+                            <option value="3">3年生</option>
+                            <option value="4">4年生</option>
+                            <option value="5">5年生</option>
+                            <option value="6">6年生</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">クラス</label>
+                        <input type="text" id="studentClass" placeholder="例: A組" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                    <button type="button" id="cancelStudent" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        キャンセル
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        追加
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 相談詳細モーダル -->
+    <div id="consultationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">相談詳細・返答</h3>
+            </div>
+            <div class="px-6 py-4">
+                <div class="space-y-4">
+                    <!-- 相談情報 -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <strong>相談日時:</strong>
+                                <span id="modalDate"></span>
+                            </div>
+                            <div>
+                                <strong>児童名:</strong>
+                                <span id="modalStudentName"></span>
+                            </div>
+                            <div>
+                                <strong>相談先:</strong>
+                                <span id="modalTeacherName"></span>
+                            </div>
+                            <div>
+                                <strong>現在のステータス:</strong>
+                                <span id="modalCurrentStatus" class="px-2 py-1 rounded-full text-xs"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 相談内容 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">相談内容</label>
+                        <div id="modalConsultationContent" class="bg-gray-50 border rounded-lg p-4 min-h-[100px] whitespace-pre-wrap"></div>
+                    </div>
+
+                    <!-- ステータス変更 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">ステータス変更</label>
+                        <select id="modalStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="新規">新規</option>
+                            <option value="確認済み">確認済み</option>
+                            <option value="対応中">対応中</option>
+                            <option value="解決済み">解決済み</option>
+                        </select>
+                    </div>
+
+                    <!-- 教員からの返答 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">教員からの返答・対応内容</label>
+                        <textarea id="modalTeacherResponse" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="児童への返答や対応内容を記入してください"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button type="button" id="cancelConsultation" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    キャンセル
+                </button>
+                <button type="button" id="saveConsultation" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 教員追加・編集モーダル -->
+    <div id="teacherModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 id="teacherModalTitle" class="text-lg font-medium text-gray-900">教員を追加</h3>
+            </div>
+            <form id="teacherForm">
+                <div class="px-6 py-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">教員名 *</label>
+                        <input type="text" id="teacherName" required placeholder="教員の名前を入力してください" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">名前のみで簡単に教員を追加できます</p>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                    <button type="button" id="cancelTeacher" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        キャンセル
+                    </button>
+                    <button type="submit" id="saveTeacher" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 教員削除確認モーダル -->
+    <div id="deleteTeacherModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-red-600">教員削除の確認</h3>
+            </div>
+            <div class="px-6 py-4">
+                <p class="text-sm text-gray-700 mb-4">
+                    以下の教員を削除してもよろしいですか？この操作は取り消すことができません。
+                </p>
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <p id="deleteTeacherInfo" class="font-medium text-gray-900"></p>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button type="button" id="cancelDeleteTeacher" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    キャンセル
+                </button>
+                <button type="button" id="confirmDeleteTeacher" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    削除する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- データ管理 -->
+    <script src="js/static-data-manager.js"></script>
+    <script src="js/firebase-adapter.js"></script>
+    <script src="js/supabase-adapter.js"></script>
+    <script src="js/api-adapter.js"></script>
+    <script>
+        // データベースの設定をチェックして適切なアダプターを選択
+        (async function initializeAdapter() {
+            // Supabase設定（全端末で共通）
+            const SUPABASE_CONFIG = {
+                url: 'https://gcvaczijcdgzaoaxwhpz.supabase.co',
+                key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjdmFjemlqY2RnemFvYXh3aHB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwODEyNTksImV4cCI6MjA3OTY1NzI1OX0.mu-ky-N0bUbRlkKvH9DUAJiUT2CXDvY4hPFJfjGwlKI'
+            };
+            
+            // Supabaseモードをチェック
+            let useSupabase = localStorage.getItem('use_supabase') === 'true';
+            
+            // デフォルトでSupabaseモードを有効化
+            if (!useSupabase && !localStorage.getItem('use_firebase')) {
+                console.log('🔧 Supabaseモードを自動適用中...');
+                localStorage.setItem('use_supabase', 'true');
+                useSupabase = true;
+                console.log('✅ Supabaseモードを自動適用しました');
+            }
+            
+            if (useSupabase) {
+                try {
+                    console.log('☁️ Supabaseモードで起動');
+                    
+                    // Supabaseアダプターを初期化
+                    window.supabaseAdapter = new SupabaseAdapter(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+                    
+                    // fetch関数をSupabase版に置き換え
+                    window.originalFetch = window.fetch;
+                    window.fetch = function(url, options) {
+                        if (url.startsWith('tables/')) {
+                            return window.supabaseAdapter.fetch(url, options);
+                        } else {
+                            return window.originalFetch(url, options);
+                        }
+                    };
+                    
+                    // ヘッダーのモード表示を更新
+                    const modeIndicator = document.querySelector('header .bg-blue-100');
+                    if (modeIndicator) {
+                        modeIndicator.className = 'ml-4 px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium';
+                        modeIndicator.innerHTML = '<i class="fas fa-cloud mr-1"></i>Supabase運用モード';
+                    }
+                    
+                    console.log('✅ Supabase初期化完了');
+                } catch (error) {
+                    console.error('❌ Supabase初期化エラー:', error);
+                    
+                    const errorMsg = `Supabase接続エラーが発生しました。\n\n` +
+                                    `エラー: ${error.message}\n\n` +
+                                    `localStorageモードに戻しますか？`;
+                    
+                    if (confirm(errorMsg)) {
+                        localStorage.removeItem('use_supabase');
+                        alert('localStorageモードに切り替えました。ページをリロードします。');
+                        location.reload();
+                    }
+                }
+                return; // Supabaseモードの場合はここで終了
+            }
+            
+            // 以下、FirebaseまたはlocalStorageモードの処理
+            // デフォルトのFirebase設定（全端末で共通）
+            const DEFAULT_FIREBASE_CONFIG = {
+                apiKey: "YOUR_API_KEY",
+                authDomain: "YOUR_PROJECT.firebaseapp.com",
+                projectId: "YOUR_PROJECT_ID",
+                storageBucket: "YOUR_PROJECT.appspot.com",
+                messagingSenderId: "YOUR_SENDER_ID",
+                appId: "YOUR_APP_ID"
+            };
+            
+            let useFirebase = localStorage.getItem('use_firebase') === 'true';
+            let firebaseConfigStr = localStorage.getItem('firebase_config');
+            
+            // Firebase設定が未設定の場合、デフォルト設定を自動適用
+            if (!useFirebase && DEFAULT_FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") {
+                console.log('🔧 Firebase設定を自動適用中...');
+                localStorage.setItem('use_firebase', 'true');
+                localStorage.setItem('firebase_config', JSON.stringify(DEFAULT_FIREBASE_CONFIG));
+                useFirebase = true;
+                firebaseConfigStr = JSON.stringify(DEFAULT_FIREBASE_CONFIG);
+                console.log('✅ Firebase設定を自動適用しました');
+            }
+            
+            if (useFirebase && firebaseConfigStr) {
+                try {
+                    console.log('🔥 Firebaseモードで起動');
+                    const firebaseConfig = JSON.parse(firebaseConfigStr);
+                    
+                    // Firebaseアダプターを初期化（グローバルインスタンスは既に作成済み）
+                    await window.firebaseAdapter.initialize(firebaseConfig);
+                    
+                    // fetch関数をFirebase版に置き換え
+                    window.originalFetch = window.fetch;
+                    window.fetch = function(url, options) {
+                        if (url.startsWith('tables/')) {
+                            return window.firebaseAdapter.fetch(url, options);
+                        } else {
+                            return window.originalFetch(url, options);
+                        }
+                    };
+                    
+                    // ヘッダーのモード表示を更新
+                    const modeIndicator = document.querySelector('header .bg-blue-100');
+                    if (modeIndicator) {
+                        modeIndicator.className = 'ml-4 px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium';
+                        modeIndicator.innerHTML = '<i class="fas fa-fire mr-1"></i>Firebase運用モード';
+                    }
+                    
+                    console.log('✅ Firebase初期化完了');
+                } catch (error) {
+                    console.error('❌ Firebase初期化エラー:', error);
+                    
+                    // エラー詳細を表示
+                    const errorMsg = `Firebase接続エラーが発生しました。\n\n` +
+                                    `エラー: ${error.message}\n\n` +
+                                    `localStorageモードに戻しますか？\n` +
+                                    `（「OK」で戻す、「キャンセル」でFirebase設定を確認）`;
+                    
+                    if (confirm(errorMsg)) {
+                        // localStorageモードに戻す
+                        localStorage.removeItem('use_firebase');
+                        localStorage.removeItem('firebase_config');
+                        alert('localStorageモードに切り替えました。ページをリロードします。');
+                        location.reload();
+                    } else {
+                        // DB設定画面を開く
+                        window.location.href = 'firebase-setup.html';
+                    }
+                }
+            } else {
+                console.log('💾 ローカルストレージモードで起動');
+                
+                // StaticDataManagerのインスタンスを作成（APIAdapterより先に！）
+                if (typeof StaticDataManager !== 'undefined') {
+                    window.staticDataManager = new StaticDataManager();
+                    console.log('✅ StaticDataManager初期化完了');
+                    console.log('📊 児童データ確認:', window.staticDataManager.getData('students')?.length, '名');
+                } else {
+                    console.error('❌ StaticDataManagerが読み込まれていません');
+                }
+                
+                // localStorageモードの場合、APIAdapterでfetchをインターセプト
+                if (typeof APIAdapter !== 'undefined') {
+                    window.apiAdapter = new APIAdapter();
+                    
+                    // APIAdapterのdataManagerを確実に設定
+                    if (window.staticDataManager) {
+                        window.apiAdapter.dataManager = window.staticDataManager;
+                        console.log('✅ APIAdapter.dataManager設定完了');
+                    }
+                    
+                    window.originalFetch = window.fetch;
+                    window.fetch = function(url, options) {
+                        if (url.startsWith('tables/')) {
+                            return window.apiAdapter.fetch(url, options);
+                        } else {
+                            return window.originalFetch(url, options);
+                        }
+                    };
+                    console.log('✅ APIAdapter初期化完了（localStorageモード）');
+                } else {
+                    console.error('❌ APIAdapterが読み込まれていません');
+                }
+                
+                // ヘッダーのモード表示を更新
+                const modeIndicator = document.querySelector('header .bg-blue-100');
+                if (modeIndicator) {
+                    modeIndicator.className = 'ml-4 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium';
+                    modeIndicator.innerHTML = '<i class="fas fa-database mr-1"></i>静的運用モード';
+                }
+            }
+        })();
+    </script>
+    <!-- 既存スクリプト -->
+    <script src="js/teacher-login.js?v=20250129fixed"></script>
+    <script src="js/main.js?v=20250129fixed"></script>
+</body>
+</html>
